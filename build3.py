@@ -11,8 +11,8 @@ import random
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
 
-LSTM_HIDDEN = 20
-LSTM_LAYER = 2
+LSTM_HIDDEN = 50
+LSTM_LAYER = 1
 batch_size = 128
 learning_rate = 0.001
 epoch_num = 200
@@ -59,7 +59,7 @@ def one_hot_encode(sequences, sequence_length, num_classes=6):
     one_hot = torch.zeros((len(sequences), sequence_length, num_classes), dtype=torch.float32)
     for i, sequence in enumerate(sequences):
         for j, item in enumerate(sequence):
-            one_hot[i, j] = 1
+            one_hot[i, j, item] = 1
 
     return one_hot
 
@@ -109,9 +109,11 @@ class CpGPredictor(torch.nn.Module):
         self.classifier = nn.Linear(in_features=LSTM_HIDDEN,
                                     out_features=1)
 
-    def forward(self, x):
-        lstm_out, _ = self.lstm(x)
-        lstm_out = lstm_out[:, -1, :]
+    def forward(self, x, lengths):
+        packed = pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=True)
+        packed_output, _ = self.lstm(packed)
+        lstm_out, _ = pad_packed_sequence(packed_output, batch_first=True)
+        lstm_out = lstm_out[torch.arange(lstm_out.size(0)), lengths - 1]
         logits = self.classifier(lstm_out)
 
         return torch.relu(logits)
@@ -128,9 +130,9 @@ for epoch in range(epoch_num):
     model.train()
     t_loss = 0.0
     for batch in train_loader:
-        inputs, labels = batch
+        inputs, lengths, labels = batch
         inputs, labels = inputs.to(device), labels.to(device)
-        outputs = model(inputs)
+        outputs = model(inputs, lengths)
         outputs = outputs.squeeze()
         loss = loss_fn(outputs, labels.float())
 
@@ -146,9 +148,9 @@ for epoch in range(epoch_num):
     v_loss = 0.0
     with torch.no_grad():
         for batch in test_loader:
-            inputs, labels = batch
+            inputs, lengths, labels = batch
             inputs, labels = inputs.to(device), labels.to(device)
-            outputs = model(inputs)
+            outputs = model(inputs, lengths)
             outputs = outputs.squeeze()
 
             loss = loss_fn(outputs, labels.float())
@@ -165,9 +167,9 @@ res_pred = []  # List to store model predictions
 
 with torch.no_grad():
     for batch in test_loader:
-        inputs, labels = batch
+        inputs, lengths, labels = batch
         inputs, labels = inputs.to(device), labels.to(device)
-        outputs = model(inputs)
+        outputs = model(inputs, lengths)
         outputs = outputs.squeeze()
 
         res_gs.extend(labels.tolist())
