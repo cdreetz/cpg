@@ -1,5 +1,7 @@
 Part 2 Sequences of Different Length
 
+build3.py is the final version
+
 In sequence data like the data we are working with here, it isn't always that all sequences are of the same length.
 Per the data creation step here, sequences can range from a length of 16 to 128.
 
