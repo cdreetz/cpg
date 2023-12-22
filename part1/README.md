@@ -20,7 +20,7 @@ A good solution will be a model that can be trained, with high confidence in cor
 8. Again given the outputs we want use MSE for the loss and Adam as the optimizer.
 9. I ran the code both on my mac and pc so the only thing you may need to change is cuda/mps for device
 
-
+```
 LSTM_HIDDEN: 100, LSTM_LAYER: 1, lr: 0.001
 Epoch: [1/200], Training Loss: 17.2410, Validation Loss: 4.1815
 Epoch: [2/200], Training Loss: 4.2879, Validation Loss: 4.1645
@@ -37,3 +37,4 @@ Epoch: [199/200], Training Loss: 0.0050, Validation Loss: 0.0075
 Epoch: [200/200], Training Loss: 0.0060, Validation Loss: 0.0096
 Mean Squared Error: 0.009587624781824
 R2 Score: 0.9976935227172514
+```
